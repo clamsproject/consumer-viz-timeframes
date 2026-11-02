@@ -1,180 +1,88 @@
 <!doctype html>
 <html lang="en">
-<head>
 <meta charset="utf-8">
+<meta name="color-scheme" content="light">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TimeFrames</title>
 <style>
-:root {
-  --bg: #fafaf8; --fg: #1f2328; --muted: #656d76; --line: #d8dee4;
-  --surface: #ffffff; --accent: #0969da;
-  color-scheme: light dark;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #15181c; --fg: #e6e8eb; --muted: #9aa4af; --line: #30363d;
-    --surface: #1e2329; --accent: #58a6ff;
-  }
-}
-* { box-sizing: border-box; }
-body {
-  margin: 0 auto; padding: 24px 16px; max-width: 960px;
-  background: var(--bg); color: var(--fg);
-  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-h1 { margin: 0 0 16px; font-size: 18px; font-weight: 600; word-break: break-all; }
-video { display: block; width: 100%; max-height: 54vh; background: #000; border-radius: 6px; }
-audio { display: block; width: 100%; }
-#notice {
-  display: none; margin-top: 12px; padding: 10px 12px; font-size: 14px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
-}
-#notice.shown { display: block; }
-#notice button {
-  margin-top: 8px; padding: 5px 12px; font: inherit; cursor: pointer;
-  color: var(--fg); background: transparent;
-  border: 1px solid var(--muted); border-radius: 6px;
-}
-#clock { margin: 12px 0 4px; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
-.track { margin-top: 14px; }
-.track-name { font-size: 13px; color: var(--muted); margin-bottom: 4px; word-break: break-all; }
-.bar {
-  position: relative; height: 30px; overflow: hidden; cursor: pointer;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 4px;
-}
-.segment { position: absolute; top: 0; bottom: 0; min-width: 1px; opacity: .85; }
-.segment.current { opacity: 1; box-shadow: inset 0 0 0 2px var(--fg); }
-.playhead {
-  position: absolute; top: 0; bottom: 0; width: 2px; left: 0;
-  background: var(--fg); pointer-events: none;
-}
-.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 13px; }
-.swatch { display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 2px; }
+body { max-width: 960px; margin: auto; padding: 16px; background: #fff; color: #222; font: 15px sans-serif; }
+h1 { font-size: 18px; overflow-wrap: anywhere; }
+video, audio { display: block; width: 100%; max-height: 54vh; }
+#tracks { --at: 0%; }
+.name { margin-top: 16px; color: #666; font-size: 13px; overflow-wrap: anywhere; }
+.bar { position: relative; height: 28px; margin: 4px 0; background: #eee; cursor: pointer; }
+.bar i { position: absolute; top: 0; bottom: 0; min-width: 1px; }
+.bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: var(--at); width: 2px; background: #000; pointer-events: none; }
+.legend span { margin-right: 14px; font-size: 13px; }
+.legend b { padding-right: 12px; margin-right: 5px; }
 </style>
-</head>
-<body>
 <h1 id="title"></h1>
-<div id="player-slot"></div>
-<div id="notice">
-  <div id="notice-text"></div>
-  <button id="choose" type="button"></button>
-  <input id="file" type="file" hidden>
-</div>
-<div id="clock"></div>
+<div id="player"></div>
+<p id="notice" hidden><span></span><br><input type="file"></p>
 <div id="tracks"></div>
 <script>
 const DATA = /*__DATA__*/null;
-const COLORS = ['#2f7ed8', '#e4572e', '#3aa76d', '#b65fcf', '#e0a100',
-                '#17a2b8', '#d6336c', '#7a8b99', '#8c6d31', '#5c7cfa'];
-const $ = id => document.getElementById(id);
+const COLORS = ['#4c8bd6', '#e4572e', '#3aa76d', '#b65fcf', '#e0a100', '#17a2b8', '#d6336c', '#7a8b99'];
+const notice = document.querySelector('#notice');
+const picker = notice.querySelector('input');
 const player = document.createElement(DATA.kind);
-player.controls = true;
-player.preload = 'metadata';
-$('player-slot').appendChild(player);
-$('choose').textContent = `Choose ${DATA.kind} file`;
-$('file').accept = `${DATA.kind}/*`;
-
-function clockText(ms) {
-  const s = Math.floor(ms / 1000);
-  const pad = n => String(n).padStart(2, '0');
-  return [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map(pad).join(':');
-}
-
-function showNotice(text) {
-  $('notice-text').textContent = text;
-  $('notice').classList.add('shown');
-}
-
-function seekTo(ms) {
-  player.currentTime = ms / 1000;
-  update(ms);
-}
-
 const labels = [...new Set(DATA.tracks.flatMap(t => t.segments.map(s => s.label)))];
-const colorOf = label => COLORS[labels.indexOf(label) % COLORS.length];
-const rows = [];
-
-for (const track of DATA.tracks) {
-  const box = document.createElement('div');
-  box.className = 'track';
-  const name = document.createElement('div');
-  name.className = 'track-name';
-  name.textContent = `${track.view_id} (${track.app})`;
-  const bar = document.createElement('div');
-  bar.className = 'bar';
-  const elements = track.segments.map(segment => {
-    const el = document.createElement('div');
-    el.className = 'segment';
-    el.style.left = `${segment.start_ms / DATA.duration_ms * 100}%`;
-    el.style.width = `${(segment.end_ms - segment.start_ms) / DATA.duration_ms * 100}%`;
-    el.style.background = colorOf(segment.label);
-    el.title = `${segment.label}: ${clockText(segment.start_ms)} to ${clockText(segment.end_ms)}`;
-    el.addEventListener('click', e => { e.stopPropagation(); seekTo(segment.start_ms); });
-    bar.appendChild(el);
-    return {el, segment};
-  });
-  const playhead = document.createElement('div');
-  playhead.className = 'playhead';
-  bar.appendChild(playhead);
-  bar.addEventListener('click', e => {
-    const rect = bar.getBoundingClientRect();
-    seekTo((e.clientX - rect.left) / rect.width * DATA.duration_ms);
-  });
-  const legend = document.createElement('div');
-  legend.className = 'legend';
-  for (const label of new Set(track.segments.map(s => s.label))) {
-    const item = document.createElement('span');
-    const swatch = document.createElement('span');
-    swatch.className = 'swatch';
-    swatch.style.background = colorOf(label);
-    item.append(swatch, label);
-    legend.appendChild(item);
-  }
-  box.append(name, bar, legend);
-  $('tracks').appendChild(box);
-  rows.push({elements, playhead});
-}
-
-function update(ms) {
-  $('clock').textContent = `${clockText(ms)} / ${clockText(DATA.duration_ms)}`;
-  for (const {elements, playhead} of rows) {
-    playhead.style.left = `${Math.min(ms / DATA.duration_ms, 1) * 100}%`;
-    for (const {el, segment} of elements) {
-      const current = segment.start_ms <= ms && ms < segment.end_ms;
-      el.classList.toggle('current', current);
-    }
-  }
-}
-
+const color = label => COLORS[labels.indexOf(label) % COLORS.length];
+const percent = ms => `${ms / DATA.duration_ms * 100}%`;
 const expected = DATA.file_name ? `"${DATA.file_name}"` : `the ${DATA.kind} file`;
-document.title = DATA.file_name || document.title;
-$('title').textContent = DATA.file_name || 'TimeFrames';
-player.addEventListener('timeupdate', () => update(player.currentTime * 1000));
-player.addEventListener('error', () => {
-  if (player.error) {
-    showNotice(`The browser cannot play the ${DATA.kind} at ${player.currentSrc}. ` +
-               `The file is missing, or its format is not supported. ` +
-               `Choose ${expected} on this computer.`);
-  }
-});
-$('choose').addEventListener('click', () => $('file').click());
-$('file').addEventListener('change', () => {
-  const file = $('file').files[0];
-  if (!file) return;
-  player.src = URL.createObjectURL(file);
-  $('notice').classList.remove('shown');
-  if (DATA.file_name && file.name !== DATA.file_name) {
-    showNotice(`The chosen file is "${file.name}", and the MMIF names "${DATA.file_name}". ` +
-               `The timeline can be wrong for this file.`);
-  }
-});
 
-if (DATA.src) {
-  player.src = DATA.src;
-} else {
-  showNotice(`The location of the ${DATA.kind} is not known. Choose ${expected} on this computer.`);
+function add(parent, tag, className, text) {
+  const el = parent.appendChild(document.createElement(tag));
+  el.className = className || '';
+  el.textContent = text || '';
+  return el;
 }
-update(0);
+
+function notify(text) {
+  notice.firstChild.textContent = text;
+  notice.hidden = false;
+}
+
+const tracks = document.querySelector('#tracks');
+for (const track of DATA.tracks) {
+  add(tracks, 'div', 'name', `${track.view_id} (${track.app})`);
+  const bar = add(tracks, 'div', 'bar');
+  for (const {start_ms, end_ms, label} of track.segments) {
+    const el = add(bar, 'i');
+    el.style.cssText = `left:${percent(start_ms)};width:${percent(end_ms - start_ms)};background:${color(label)}`;
+    el.title = label;
+    el.dataset.start = start_ms;
+  }
+  bar.onclick = e => {
+    const box = bar.getBoundingClientRect();
+    const ms = e.target.dataset.start ?? (e.clientX - box.left) / box.width * DATA.duration_ms;
+    player.currentTime = ms / 1000;
+  };
+  const legend = add(tracks, 'div', 'legend');
+  for (const label of new Set(track.segments.map(s => s.label))) {
+    const item = add(legend, 'span');
+    add(item, 'b').style.background = color(label);
+    item.append(label);
+  }
+}
+
+document.title = DATA.file_name || document.title;
+document.querySelector('#title').textContent = document.title;
+document.querySelector('#player').append(player);
+player.controls = true;
+picker.accept = `${DATA.kind}/*`;
+player.ontimeupdate = () => tracks.style.setProperty('--at', percent(player.currentTime * 1000));
+player.onerror = () => notify(`The browser cannot play ${player.currentSrc}. Choose ${expected} on this computer.`);
+picker.onchange = () => {
+  const file = picker.files[0];
+  if (!file) return;
+  notice.hidden = true;
+  player.src = URL.createObjectURL(file);
+  if (DATA.file_name && file.name !== DATA.file_name) {
+    notify(`The chosen file is "${file.name}". The MMIF names ${expected}.`);
+  }
+};
+if (DATA.src) player.src = DATA.src;
+else notify(`The location of the ${DATA.kind} is not known. Choose ${expected} on this computer.`);
 </script>
-</body>
 </html>
