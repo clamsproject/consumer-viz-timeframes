@@ -42,12 +42,14 @@ class Consumer(abc.ABC):
         """
 
     @classmethod
-    def output_defaults(cls, out_path: Optional[str]) -> dict:
+    def path_defaults(cls, in_path: Optional[str],
+                      out_path: Optional[str]) -> dict:
         """
-        Gives option values that follow from the output path, for example a
-        format from the file extension. Values from the configuration file
-        and the command line take precedence.
+        Gives option values that follow from the input and output paths, for
+        example a format from the extension of the output file. Values from
+        the configuration file and the command line take precedence.
 
+        :param in_path: the input path, None for STDIN
         :param out_path: the output path, None for STDOUT
         :returns: map from option names to values
         """
@@ -113,7 +115,8 @@ def run_cli(consumer_class, argv=None) -> int:
 
     consumer = consumer_class()
     try:
-        params = consumer_class.output_defaults(out_path)
+        params = consumer_class.path_defaults(
+            None if in_path == '-' else in_path, out_path)
         if config_path:
             params.update(_read_config(config_path))
         params.update({k: v for k, v in args.items() if v is not None})

@@ -3,19 +3,19 @@
 A MMIF consumer that shows the `TimeFrame` annotations of one video or audio document. It writes one of these artifacts:
 
 - `text`: rows of characters for each view, with a legend. A character is 10 s, a group of six characters is one minute, and a row is 10 minutes.
-- `html`: one HTML page with a media player and a timeline for each view. Click the timeline to seek.
+- `html`: one HTML page with a media player and a timeline for each view. Click a TimeFrame to select it and move the player to its start.
 
 ```
 Duration 2:00. A row is 10 minutes, a group 1 minute, and a character 10 s.
 A character shows the label with the most time in it, in lower case when
 that label covers less than half of it.
 
-v_0 (http://apps.clams.ai/demo-language-id/v1)
+v_0 (demo-language-id/v1)
 0:00 |EESSsS SSSEEE|
 S: es (50%, 2 TimeFrames)   E: en (43%, 2 TimeFrames)   .: no TimeFrame (7%)
 ```
 
-In text mode, `.` marks 10 s with no `TimeFrame`. In each view, the ten labels with the most time get a letter of their own, and the other labels share `*`.
+In text mode, `.` marks 10 s with no `TimeFrame`. In each view, the eight labels with the most time get a letter in text mode and a color in HTML mode, and the other labels share `*` or gray.
 
 ## Input requirements
 

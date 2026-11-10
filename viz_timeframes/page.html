@@ -1,34 +1,91 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TimeFrames</title>
+<link rel="icon" href="__LOGO__">
 <style>
-body { max-width: 960px; margin: auto; padding: 16px; background: #fff; color: #222; font: 15px sans-serif; }
-h1 { font-size: 18px; overflow-wrap: anywhere; }
+:root {
+  --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --track: #f0efec; --other: #898781; --grid: #e1e0d9; --ring: rgba(11, 11, 11, .1); --on-s3: #0b0b0b;
+  --s0: #2a78d6; --s1: #eb6834; --s2: #1baf7a; --s3: #eda100;
+  --s4: #e87ba4; --s5: #008300; --s6: #6250d6; --s7: #e34948;
+  /* the header bar of the CLAMS documentation hub */
+  --chrome: #f8f9fa; --chrome-line: #dee2e6; --link: #008aff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7;
+    --track: #2c2c2a; --grid: #383835; --ring: rgba(255, 255, 255, .1); --on-s3: #fff;
+    --s0: #3987e5; --s1: #d95926; --s2: #199e70; --s3: #c98500;
+    --s4: #d55181; --s5: #008300; --s6: #9085e9; --s7: #e66767;
+    --chrome: #1a1a1a; --chrome-line: #333; --link: #6cb6ff;
+  }
+}
+body { margin: 0; background: var(--surface); color: var(--ink); font: 15px system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 8px 16px; border-bottom: 1px solid var(--chrome-line); background: var(--chrome); font-size: 14px; }
+header div { display: flex; align-items: center; gap: 12px; }
+header img { display: block; width: 28px; height: 28px; }
+header a { color: var(--link); text-decoration: none; }
+header a:hover { text-decoration: underline; }
+main, footer { max-width: 960px; margin: auto; padding: 0 16px 16px; }
+footer { padding-top: 12px; border-top: 1px solid var(--grid); color: var(--muted); font-size: 12px; }
+h1 { font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
 video, audio { display: block; width: 100%; max-height: 54vh; }
 #tracks { --at: 0%; }
-.name { margin-top: 16px; color: #666; font-size: 13px; overflow-wrap: anywhere; }
-.bar { position: relative; height: 28px; margin: 4px 0; background: #eee; cursor: pointer; }
-.bar i { position: absolute; top: 0; bottom: 0; min-width: 1px; }
-.bar::after { content: ""; position: absolute; top: 0; bottom: 0; left: var(--at); width: 2px; background: #000; pointer-events: none; }
-.legend span { margin-right: 14px; font-size: 13px; }
-.legend b { padding-right: 12px; margin-right: 5px; }
+.track { margin-top: 20px; }
+.head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 16px; font-size: 13px; overflow-wrap: anywhere; }
+.head small, .legend small { margin-left: 6px; color: var(--muted); font-size: 12px; }
+.picked { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.picked b { margin-right: 6px; color: var(--ink); font-weight: 600; }
+.bar { position: relative; margin-top: 6px; border-radius: 4px; background: var(--track); cursor: pointer; }
+.bar i { position: absolute; min-width: 1px; }
+.bar i.round { border-radius: 4px; }
+.bar i.gap { box-shadow: inset 2px 0 var(--surface); }
+.bar i.hot { filter: brightness(1.15); }
+/* the page script measures labels in this font */
+.bar i span { position: absolute; top: 50%; left: 6px; transform: translateY(-50%); color: #fff; font: 12px system-ui, -apple-system, "Segoe UI", sans-serif; white-space: nowrap; pointer-events: none; }
+.bar i.s3 span { color: var(--on-s3); }
+.bar::after { content: ""; position: absolute; top: -3px; bottom: -3px; left: var(--at); width: 2px; margin-left: -1px; background: var(--ink); pointer-events: none; }
+.strip { position: relative; height: 4px; margin-top: 4px; }
+.strip b { position: absolute; top: 0; bottom: 0; min-width: 2px; border-radius: 2px; background: var(--ink); }
+.axis { position: relative; height: 16px; margin-top: 2px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.axis span { position: absolute; top: 0; padding-left: 3px; border-left: 1px solid var(--grid); line-height: 14px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 4px; font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; overflow-wrap: anywhere; }
+.legend b { flex: none; width: 12px; height: 12px; margin-right: 6px; border-radius: 3px; }
+.legend .gap b { box-shadow: inset 0 0 0 1px var(--ring); }
+#tip { position: fixed; z-index: 1; padding: 6px 8px; border-radius: 6px; background: var(--surface); box-shadow: 0 0 0 1px var(--ring), 0 4px 12px rgba(0, 0, 0, .15); font-size: 12px; pointer-events: none; }
+#tip strong { display: block; font-variant-numeric: tabular-nums; }
+#tip span { color: var(--ink-2); }
+#tip span::before { content: ""; display: inline-block; width: 10px; height: 2px; margin-right: 6px; vertical-align: middle; background: var(--key); }
 </style>
+<header>
+  <div><a href="https://clams.ai" title="CLAMS"><img src="__LOGO__" alt="CLAMS"></a><span id="tool"></span></div>
+  <a href="https://mmif.clams.ai">MMIF</a>
+</header>
+<main>
 <h1 id="title"></h1>
 <div id="player"></div>
 <p id="notice" hidden><span></span><br><input type="file"></p>
 <div id="tracks"></div>
+</main>
+<footer></footer>
+<div id="tip" hidden><strong></strong><span></span></div>
 <script>
 const DATA = /*__DATA__*/null;
-const COLORS = ['#4c8bd6', '#e4572e', '#3aa76d', '#b65fcf', '#e0a100', '#17a2b8', '#d6336c', '#7a8b99'];
+const BAR_H = 28, LANE_GAP = 2, MIN_LANE_H = 8, GAP_PX = 2, ROUND_PX = 8, NEAR_PX = 4, LABEL_PAD = 12;
+const LABEL_FONT = '12px system-ui, -apple-system, "Segoe UI", sans-serif';
 const notice = document.querySelector('#notice');
 const picker = notice.querySelector('input');
+const tip = document.querySelector('#tip');
+const tracks = document.querySelector('#tracks');
 const player = document.createElement(DATA.kind);
-const labels = [...new Set(DATA.tracks.flatMap(t => t.segments.map(s => s.label)))];
-const color = label => COLORS[labels.indexOf(label) % COLORS.length];
+const hours = DATA.duration_ms >= 3600000;
 const percent = ms => `${ms / DATA.duration_ms * 100}%`;
+const fill = slot => slot < 0 ? 'var(--other)' : `var(--s${slot})`;
+const pad = n => String(n).padStart(2, '0');
 const expected = DATA.file_name ? `"${DATA.file_name}"` : `the ${DATA.kind} file`;
 
 function add(parent, tag, className, text) {
@@ -43,31 +100,148 @@ function notify(text) {
   notice.hidden = false;
 }
 
-const tracks = document.querySelector('#tracks');
-for (const track of DATA.tracks) {
-  add(tracks, 'div', 'name', `${track.view_id} (${track.app})`);
-  const bar = add(tracks, 'div', 'bar');
-  for (const {start_ms, end_ms, label} of track.segments) {
-    const el = add(bar, 'i');
-    el.style.cssText = `left:${percent(start_ms)};width:${percent(end_ms - start_ms)};background:${color(label)}`;
-    el.title = label;
-    el.dataset.start = start_ms;
+function clock(ms, tenths = false) {
+  const ds = tenths ? Math.round(ms / 100) : Math.floor(ms / 1000) * 10;
+  const s = Math.floor(ds / 10);
+  const rest = pad(s % 60) + (tenths ? `.${ds % 10}` : '');
+  return hours ? `${Math.floor(s / 3600)}:${pad(Math.floor(s / 60) % 60)}:${rest}` : `${Math.floor(s / 60)}:${rest}`;
+}
+
+function length(ms) {
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)} s`;
+  const s = Math.round(ms / 1000);
+  const rest = `${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
+  return s >= 3600 ? `${Math.floor(s / 3600)}:${rest}` : `${Math.floor(s / 60)}:${pad(s % 60)}`;
+}
+
+const times = seg => `${clock(seg.start_ms, true)}–${clock(seg.end_ms, true)} (${length(seg.end_ms - seg.start_ms)})`;
+
+function key(legend, color, label, numbers) {
+  const item = add(legend, 'span');
+  add(item, 'b').style.background = color;
+  item.append(label);
+  add(item, 'small', '', numbers);
+  return item;
+}
+
+// the segment under the pointer, or the nearest one within NEAR_PX
+function hit(view, e) {
+  const box = view.bar.getBoundingClientRect();
+  const ms = Math.min(Math.max(0, (e.clientX - box.left) / box.width), 1) * DATA.duration_ms;
+  const row = Math.floor((e.clientY - box.top) / (view.laneH + LANE_GAP));
+  const lane = Math.min(view.track.lanes - 1, Math.max(0, row));
+  let index = -1, best = NEAR_PX / box.width * DATA.duration_ms;
+  for (const i of view.lanes[lane]) {
+    const seg = view.track.segments[i];
+    if (seg.start_ms > ms + best) break;
+    const dist = Math.max(seg.start_ms - ms, ms - seg.end_ms, 0);
+    // at a boundary, the later segment wins, because an end is exclusive
+    if (dist <= best) [index, best] = [i, dist];
   }
+  return {ms, index};
+}
+
+function hover(view, index, e) {
+  if (view.hot >= 0) view.marks[view.hot].classList.remove('hot');
+  view.hot = index;
+  tip.hidden = index < 0;
+  if (index < 0) return;
+  const seg = view.track.segments[index];
+  view.marks[index].classList.add('hot');
+  tip.firstChild.textContent = times(seg);
+  tip.lastChild.textContent = seg.label;
+  tip.lastChild.style.setProperty('--key', fill(view.track.colors[seg.label]));
+  const right = e.clientX + 12 + tip.offsetWidth > innerWidth;
+  tip.style.left = `${right ? e.clientX - 12 - tip.offsetWidth : e.clientX + 12}px`;
+  tip.style.top = `${e.clientY + 16}px`;
+}
+
+function select(view, index) {
+  view.strip.hidden = index < 0;
+  view.picked.replaceChildren();
+  if (index < 0) return;
+  const seg = view.track.segments[index];
+  view.strip.style.left = percent(seg.start_ms);
+  view.strip.style.width = percent(seg.end_ms - seg.start_ms);
+  add(view.picked, 'b', '', seg.label);
+  view.picked.append(times(seg));
+}
+
+const views = DATA.tracks.map(track => {
+  const root = add(tracks, 'section', 'track');
+  const head = add(root, 'div', 'head');
+  const name = add(head, 'span', 'name', track.name);
+  name.title = track.app;
+  add(name, 'small', '', track.view_id);
+  const picked = add(head, 'span', 'picked');
+  const laneH = track.lanes === 1 ? BAR_H
+    : Math.max(MIN_LANE_H, Math.floor((BAR_H - LANE_GAP * (track.lanes - 1)) / track.lanes));
+  const bar = add(root, 'div', 'bar');
+  bar.style.height = `${track.lanes * laneH + (track.lanes - 1) * LANE_GAP}px`;
+  const lanes = Array.from({length: track.lanes}, () => []);
+  const marks = track.segments.map((seg, i) => {
+    const color = track.colors[seg.label];
+    lanes[seg.lane].push(i);
+    const el = add(bar, 'i', `s${color}`);
+    // the extra half pixel hides seams where touching segments meet inside a pixel
+    el.style.cssText = `left:${percent(seg.start_ms)};width:calc(${percent(seg.end_ms - seg.start_ms)} + .5px);`
+      + `top:${seg.lane * (laneH + LANE_GAP)}px;height:${laneH}px;background:${fill(color)}`;
+    return el;
+  });
+  const strip = add(add(root, 'div', 'strip'), 'b');
+  strip.hidden = true;
+  const axis = add(root, 'div', 'axis');
+  for (const ms of DATA.ticks) add(axis, 'span', '', clock(ms)).style.left = percent(ms);
+  const legend = add(root, 'div', 'legend');
+  for (const entry of track.legend) key(legend, fill(entry.color), entry.label, `${entry.share}, ${entry.count}`);
+  if (track.others) {
+    const {labels, share, count} = track.others;
+    key(legend, 'var(--other)', `${labels.length} other labels`, `${share}, ${count}`).title = labels.join(', ');
+  }
+  if (track.gap) key(legend, 'var(--track)', 'no TimeFrame', track.gap).classList.add('gap');
+  const view = {track, bar, marks, lanes, laneH, strip, picked, hot: -1};
+  bar.onpointermove = e => hover(view, hit(view, e).index, e);
+  bar.onpointerleave = () => hover(view, -1);
   bar.onclick = e => {
-    const box = bar.getBoundingClientRect();
-    const ms = e.target.dataset.start ?? (e.clientX - box.left) / box.width * DATA.duration_ms;
-    player.currentTime = ms / 1000;
+    const {ms, index} = hit(view, e);
+    select(view, index);
+    player.currentTime = (index < 0 ? ms : track.segments[index].start_ms) / 1000;
   };
-  const legend = add(tracks, 'div', 'legend');
-  for (const label of new Set(track.segments.map(s => s.label))) {
-    const item = add(legend, 'span');
-    add(item, 'b').style.background = color(label);
-    item.append(label);
+  return view;
+});
+
+// separators, round corners and labels inside segments depend on the
+// rendered width; a narrow segment stays square, so a dense run reads as one block
+const measure = document.createElement('canvas').getContext('2d');
+measure.font = LABEL_FONT;
+const widths = new Map();
+function textWidth(text) {
+  if (!widths.has(text)) widths.set(text, measure.measureText(text).width);
+  return widths.get(text);
+}
+
+function layout() {
+  for (const view of views) {
+    const width = view.bar.clientWidth;
+    view.track.segments.forEach((seg, i) => {
+      const el = view.marks[i];
+      const px = (seg.end_ms - seg.start_ms) / DATA.duration_ms * width;
+      el.classList.toggle('gap', seg.joined && px > 2 * GAP_PX);
+      el.classList.toggle('round', px >= ROUND_PX);
+      const fits = view.track.lanes === 1 && px >= textWidth(seg.label) + LABEL_PAD;
+      if (fits && !el.firstChild) add(el, 'span', '', seg.label);
+      else if (!fits && el.firstChild) el.firstChild.remove();
+    });
   }
 }
 
-document.title = DATA.file_name || document.title;
-document.querySelector('#title').textContent = document.title;
+layout();
+addEventListener('resize', layout);
+const {name, version} = DATA.tool;
+document.title = `${DATA.file_name ? `${DATA.file_name} – ` : ''}MMIF Consumer (${name})`;
+document.querySelector('#title').textContent = DATA.file_name;
+document.querySelector('#tool').textContent = `TimeFrame Visualization (${name})`;
+document.querySelector('footer').textContent = `Created with ${name} ${version}${DATA.mmif_name ? ` from ${DATA.mmif_name}` : ''}`;
 document.querySelector('#player').append(player);
 player.controls = true;
 picker.accept = `${DATA.kind}/*`;

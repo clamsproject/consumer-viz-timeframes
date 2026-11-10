@@ -29,13 +29,16 @@ class TimeFramesViz(Consumer):
                             help='html: full path or URL of the media file')
 
     @classmethod
-    def output_defaults(cls, out_path):
+    def path_defaults(cls, in_path, out_path):
+        defaults = {}
+        if in_path:
+            defaults['mmif_name'] = Path(in_path).name
         if out_path and Path(out_path).suffix.lower() in HTML_SUFFIXES:
-            return {'format': 'html'}
-        return {}
+            defaults['format'] = 'html'
+        return defaults
 
     def _consume(self, mmif, format='text', document=None, duration=None,
-                 document_location=None):
+                 document_location=None, mmif_name=None):
         if format not in FORMATS:
             raise ConsumerError(f'unknown format: {format}')
         media_doc = extract.select_media(mmif, document)
@@ -47,7 +50,8 @@ class TimeFramesViz(Consumer):
         src = media.resolve_src(media_doc, document_location, self.warn)
         return render_html.render(tracks, total,
                                   extract.media_kind(media_doc), src,
-                                  media.media_file_name(media_doc))
+                                  media.media_file_name(media_doc),
+                                  mmif_name)
 
 
 def main(argv=None) -> int:

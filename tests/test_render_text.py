@@ -1,4 +1,4 @@
-from viz_timeframes import render_text
+from viz_timeframes import render_text, summary
 from viz_timeframes.extract import Segment, Track
 
 MINUTE = 60000
@@ -9,7 +9,7 @@ def track(*frames):
 
 
 def chars_of(t):
-    return render_text.assign_chars(render_text.label_totals(t))
+    return render_text.assign_chars(summary.label_totals(t))
 
 
 def test_language_codes_get_their_first_letters():
@@ -26,7 +26,7 @@ def test_labels_beyond_the_limit_share_one_character():
     totals = {f'speaker_{i:02d}': 100 - i for i in range(30)}
     chars = render_text.assign_chars(totals)
     named = [c for c in chars.values() if c != render_text.OTHER_CHAR]
-    assert len(named) == len(set(named)) == render_text.MAX_NAMED
+    assert len(named) == len(set(named)) == summary.MAX_NAMED
     assert all(c.isupper() for c in named)
     # the labels with the least time share the character
     assert chars['speaker_29'] == render_text.OTHER_CHAR
@@ -89,7 +89,7 @@ def test_output_fits_the_rows():
     t = track(*((i * MINUTE, (i + 1) * MINUTE, f'label_{i}')
                 for i in range(20)))
     out = render_text.render([t], 20 * MINUTE)
-    assert '*: 10 other labels' in out
+    assert f'*: {20 - summary.MAX_NAMED} other labels' in out
     width = len(' 0:00 |' + grouped(10) + '|')
     assert all(len(line) <= width for line in out.splitlines())
 

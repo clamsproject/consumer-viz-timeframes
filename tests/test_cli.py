@@ -1,5 +1,6 @@
 import io
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,7 @@ def out_dir(tmp_path):
 def test_text_goes_to_stdout(capsys):
     assert main([str(DEMO)]) == 0
     out = capsys.readouterr().out
-    assert 'v_0 (http://apps.clams.ai/demo-language-id/v1)' in out
+    assert 'v_0 (demo-language-id/v1)' in out
     assert '0:00 |EESS' in out
 
 
@@ -66,3 +67,17 @@ def test_errors_give_a_non_zero_status_and_no_artifact(out_dir, capsys):
     assert main([str(out_dir / 'missing.mmif'), '-o', str(out)]) == 1
     assert capsys.readouterr().err.startswith('Error: ')
     assert not out.exists()
+
+
+def page_data(path):
+    found = re.search(r'const DATA = (\{.*?\});\n', path.read_text(), re.S)
+    return json.loads(found.group(1))
+
+
+def test_page_names_the_input_mmif(out_dir, monkeypatch):
+    out = out_dir / 'page.html'
+    assert main([str(DEMO), '-o', str(out)]) == 0
+    assert page_data(out)['mmif_name'] == 'language-demo.mmif'
+    monkeypatch.setattr('sys.stdin', io.StringIO(DEMO.read_text()))
+    assert main(['-o', str(out)]) == 0
+    assert page_data(out)['mmif_name'] is None

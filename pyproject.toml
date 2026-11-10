@@ -21,7 +21,7 @@ viz-timeframes = "viz_timeframes.consumer:main"
 packages = ["viz_timeframes", "mmif_consumer"]
 
 [tool.setuptools.package-data]
-viz_timeframes = ["page.html"]
+viz_timeframes = ["page.html", "clams-logo.png"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
