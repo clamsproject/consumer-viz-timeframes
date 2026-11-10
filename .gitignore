@@ -16,8 +16,6 @@
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
 
-#!! ERROR: mac is undefined. Use list command to see defined gitignore types !!#
-
 ### Python ###
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -2,14 +2,20 @@
 
 A MMIF consumer that shows the `TimeFrame` annotations of one video or audio document. It writes one of these artifacts:
 
-- `text`: a segmented bar for each view, with the share of each label
+- `text`: rows of characters for each view, with a legend. A character is 10 s, a group of six characters is one minute, and a row is 10 minutes.
 - `html`: one HTML page with a media player and a timeline for each view. Click the timeline to seek.
 
 ```
+Duration 2:00. A row is 10 minutes, a group 1 minute, and a character 10 s.
+A character shows the label with the most time in it, in lower case when
+that label covers less than half of it.
+
 v_0 (http://apps.clams.ai/demo-language-id/v1)
-|-E-E-E-E-E-S-S-S-S-S-S-S-S-X-S-S-S-S-S-S-S-S-S-S-E-E-E-E-E-E-E-E-E-E-|
-S: es (50%)   E: en (43%)   X: no label (7%)
+0:00 |EESSsS SSSEEE|
+S: es (50%, 2 TimeFrames)   E: en (43%, 2 TimeFrames)   .: no TimeFrame (7%)
 ```
+
+In text mode, `.` marks 10 s with no `TimeFrame`. In each view, the ten labels with the most time get a letter of their own, and the other labels share `*`.
 
 ## Input requirements
 
@@ -22,25 +28,29 @@ S: es (50%)   E: en (43%)   X: no label (7%)
 
 ## Usage
 
-The only dependency is `mmif-python`. See the options with:
+Install the `viz-timeframes` command. The only dependency is `mmif-python`.
 
 ```
-python consume.py --help
+pip install git+https://github.com/clamsproject/consumer-viz-timeframes
 ```
 
 Text mode, written to STDOUT:
 
 ```
-python consume.py input.mmif
+viz-timeframes input.mmif
 ```
 
-HTML mode:
+HTML mode, chosen by the `.html` extension of the output path (`--format` sets the mode explicitly):
 
 ```
-python consume.py input.mmif --format html --document-location /path/to/video.mp4 -o page.html
+viz-timeframes input.mmif -o page.html
 ```
 
-Warnings and errors go to STDERR. The exit status is non-zero when no artifact is created.
+See `viz-timeframes --help` for the other options. Warnings and errors go to STDERR. The exit status is non-zero when no artifact is created. In a clone of the repository, `python consume.py` runs the same command line.
+
+## Development
+
+Install the test dependencies with `pip install -e '.[test]'` and run `pytest` from the repository root.
 
 ## Media location
 

@@ -9,7 +9,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from mmif import Mmif
 
@@ -40,6 +40,18 @@ class Consumer(abc.ABC):
 
         :param parser: the parser of the command line runner
         """
+
+    @classmethod
+    def output_defaults(cls, out_path: Optional[str]) -> dict:
+        """
+        Gives option values that follow from the output path, for example a
+        format from the file extension. Values from the configuration file
+        and the command line take precedence.
+
+        :param out_path: the output path, None for STDOUT
+        :returns: map from option names to values
+        """
+        return {}
 
     def warn(self, message: str) -> None:
         """
@@ -101,7 +113,9 @@ def run_cli(consumer_class, argv=None) -> int:
 
     consumer = consumer_class()
     try:
-        params = _read_config(config_path) if config_path else {}
+        params = consumer_class.output_defaults(out_path)
+        if config_path:
+            params.update(_read_config(config_path))
         params.update({k: v for k, v in args.items() if v is not None})
         if in_path == '-':
             source = sys.stdin.read()

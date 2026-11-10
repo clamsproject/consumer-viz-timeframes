@@ -1,0 +1,120 @@
+{
+  "metadata": {
+    "mmif": "http://mmif.clams.ai/1.0.5"
+  },
+  "documents": [
+    {
+      "@type": "http://clams.ai/vocabulary/type/VideoDocument/v2",
+      "properties": {
+        "duration": 120000,
+        "mime": "video/mp4",
+        "id": "m1",
+        "location": "file:///data/demo.mp4"
+      }
+    }
+  ],
+  "views": [
+    {
+      "id": "v_0",
+      "metadata": {
+        "timestamp": "2026-10-31T21:04:29.821124Z",
+        "app": "http://apps.clams.ai/demo-language-id/v1",
+        "contains": {
+          "http://clams.ai/vocabulary/type/TimeFrame/v6": {
+            "document": "m1",
+            "timeUnit": "milliseconds"
+          }
+        }
+      },
+      "annotations": [
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 0,
+            "end": 18000,
+            "label": "en",
+            "id": "v_0:tf_1"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 18000,
+            "end": 44000,
+            "label": "es",
+            "id": "v_0:tf_2"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 52000,
+            "end": 86000,
+            "label": "es",
+            "id": "v_0:tf_3"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 86000,
+            "end": 120000,
+            "label": "en",
+            "id": "v_0:tf_4"
+          }
+        }
+      ]
+    },
+    {
+      "id": "v_1",
+      "metadata": {
+        "timestamp": "2026-10-31T21:04:29.821936Z",
+        "app": "http://apps.clams.ai/demo-scene-detection/v1",
+        "contains": {
+          "http://clams.ai/vocabulary/type/TimeFrame/v6": {
+            "document": "m1",
+            "timeUnit": "milliseconds"
+          }
+        }
+      },
+      "annotations": [
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 1000,
+            "end": 7000,
+            "label": "slate",
+            "id": "v_1:tf_1"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 30000,
+            "end": 38000,
+            "label": "chyron",
+            "id": "v_1:tf_2"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 70000,
+            "end": 75000,
+            "label": "chyron",
+            "id": "v_1:tf_3"
+          }
+        },
+        {
+          "@type": "http://clams.ai/vocabulary/type/TimeFrame/v6",
+          "properties": {
+            "start": 108000,
+            "end": 119000,
+            "label": "credits",
+            "id": "v_1:tf_4"
+          }
+        }
+      ]
+    }
+  ]
+}

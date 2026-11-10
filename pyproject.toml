@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "consumer-viz-timeframes"
+version = "0.1.0"
+description = "MMIF consumer that shows TimeFrame annotations as text or as an HTML page"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dependencies = ["mmif-python>=1.0.9"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[project.scripts]
+viz-timeframes = "viz_timeframes.consumer:main"
+
+[tool.setuptools]
+packages = ["viz_timeframes", "mmif_consumer"]
+
+[tool.setuptools.package-data]
+viz_timeframes = ["page.html"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
